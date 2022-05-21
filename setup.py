@@ -12,11 +12,10 @@ setup(name='motion_control',
       #license='MIT', # or any license you think is relevant
       packages=['script'],
       zip_safe=False,
-      #install_requires=[
-          # add here any tool that you need to install via pip 
-          # to have this package working
-      #    'setuptools',
-      #],
+      install_requires=[
+          #'pycurl',
+          'requests',
+      ],
       entry_points="""
       # -*- Entry points: -*-
       [console_scripts]

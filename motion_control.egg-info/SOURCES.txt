@@ -1,0 +1,10 @@
+README.md
+setup.py
+motion_control.egg-info/PKG-INFO
+motion_control.egg-info/SOURCES.txt
+motion_control.egg-info/dependency_links.txt
+motion_control.egg-info/entry_points.txt
+motion_control.egg-info/not-zip-safe
+motion_control.egg-info/requires.txt
+motion_control.egg-info/top_level.txt
+script/SpringCodeGeneratore.py
