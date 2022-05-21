@@ -1,2 +1,3 @@
-
-sudo python setup.py install
+#Run Project :
+>
+>sudo python setup.py install
