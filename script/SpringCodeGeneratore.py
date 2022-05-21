@@ -1,7 +1,5 @@
-from audioop import add
 import curses
 import sys
-from typing import List, Text
 import zipfile
 
 from pyparsing import Char
