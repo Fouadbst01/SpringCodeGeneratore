@@ -57,11 +57,12 @@ def start(args):
             return addAssociation()
 
 def basePackage(arg):
+    sep=separator
     cont=1
     if(arg==""):
-        mpath = getcwd()+"/src/main/java/"
+        mpath = getcwd()+sep+"src"+sep+"main"+sep+"java"+sep
     else:
-        mpath = getcwd()+"/"+arg+"/src/main/java/"
+        mpath = getcwd()+sep+arg+sep+"src"+sep+"main"+sep+"java"+sep
     flag=True
     while flag:
         list = [f.path for f in scandir(mpath) if f.is_dir()]
@@ -70,8 +71,6 @@ def basePackage(arg):
         else:
             flag=False
         cont=cont+1
-    if(platform.system()=='Windows'):
-        mpath.replace("/","\\")
     return mpath
 
 def addEntity(name):
