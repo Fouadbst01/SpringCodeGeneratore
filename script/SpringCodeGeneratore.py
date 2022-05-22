@@ -57,7 +57,7 @@ def start(args):
             return addAssociation()
 
 def basePackage(arg):
-    sep=separator
+    sep=separator()
     cont=1
     if(arg==""):
         mpath = getcwd()+sep+"src"+sep+"main"+sep+"java"+sep
