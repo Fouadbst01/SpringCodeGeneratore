@@ -20,5 +20,10 @@ Generate repository :
 >
 Generate association :
 >sg a
->
+
+Generate Enum :
+>sg e
+
+DTOs are generated automaticlly
+> for lists you need to add code manually
 
