@@ -1,7 +1,5 @@
-from audioop import add
 import curses
 import sys
-from typing import List, Text
 import zipfile
 
 from pyparsing import Char
@@ -215,7 +213,8 @@ def init(arg):
     f.write("spring.datasource.password=\n")
     #f.write("spring.jpa.show-sql=true")
     f.write("spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect\n")
-    f.write("spring.jpa.hibernate.ddl-auto=update\n")
+    f.write("spring.jpa.hibernate.ddl-auto=create\n")
+    f.write("server.port=8083")
     f.close()
     generateProjectStructure()
 
@@ -254,7 +253,7 @@ def AddDependency(chosen,entity1,entity2):
             dto2="\t"+"List<"+entity1+"DTO>"+" list"+entity1+"DTO;\n"
             str2='\t@OneToMany(mappedBy = "'+entity2.lower()+'",fetch = FetchType.LAZY)\n'+"\t"+"List<"+entity1+">"+"list"+entity1+";\n"
             dto1="\t"+entity2+"DTO "+" "+entity2.lower()+"DTO;\n"
-            str1="\t@ManyToOne\n"+dto1
+            str1="\t@ManyToOne\n\t"+entity2+" "+entity2.lower()+";\n"
             write(str1,entity1,dto1)
             write(str2,entity2,dto2)
         case "OneToOne":
