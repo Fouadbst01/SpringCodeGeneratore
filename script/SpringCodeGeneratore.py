@@ -1,4 +1,5 @@
 import curses
+from struct import pack
 import sys
 import zipfile
 
@@ -44,7 +45,6 @@ def choseType(stdscr):
     stdscr.addstr(classes[option])
     return classes[option];
 
-#curses.wrapper(choseType)
 def start(args):
     match args:
         case 'c':
@@ -55,6 +55,8 @@ def start(args):
             return init(sys.argv[2])
         case 'a':
             return addAssociation()
+        case 'e':
+            return generateEnum(sys.argv[2])
 
 def basePackage(arg):
     sep=separator()
@@ -88,7 +90,7 @@ def addEntity(name):
     f = open(mypath+sepa+"entities"+sepa+name+".java", "w")
 
     fdto = open(mypath+sepa+"dtos"+sepa+name+"DTO"+".java","w")
-
+    
     fdto.write(
         "package com.enset."+pname+".dtos;\n\n"
         +"import lombok.Data;\n"
@@ -96,7 +98,6 @@ def addEntity(name):
         +"\n\n@Data\n"
         +"public class "+name+"DTO {\n"
     )
-
     f.write("package com.enset."+pname+".entities;\n\n"+"import lombok.AllArgsConstructor;\n"
 +"import lombok.Data;\n"
 +"import lombok.NoArgsConstructor;\n"
@@ -143,6 +144,7 @@ def addEntity(name):
     fdto.write("}")
     f.close()
     fdto.close()
+    addMapper(name,name+"DTO")
 
 def generateProjectStructure():
     sepa=separator()
@@ -162,6 +164,15 @@ def generateProjectStructure():
             mkdir(mypath+sepa+"web")
         if(not exists(mypath+sepa+"dtos")):
             mkdir(mypath+sepa+"dtos")
+        if(not exists(mypath+sepa+"mappers")):
+            mkdir(mypath+sepa+"mappers")
+        with open(mypath+sepa+"mappers"+sepa+"MapperImpl.java","w") as f:
+            list= mypath.split(sepa)
+            pname=list[len(list)-1]
+            f.write("package com.enset."+pname+".mappers;\n\n"
+            +"import org.springframework.beans.BeanUtils;\nimport org.springframework.stereotype.Service;\n"
+                    +"@Service\npublic class MapperImpl{\n}")
+            f.close()
     except OSError as err:
         print("alerady generated !!")
 
@@ -301,6 +312,51 @@ def separator():
         return '\\'
     else:
         return '/'
+def addMapper(entity1,entity2):
+    sepa=separator()
+    mypath=basePackage("")
+    list= mypath.split(sepa)
+    pname=list[len(list)-1]
+    str="\tpublic "+entity2+" from"+entity1+"("+entity1+" "+entity1.lower()+"){\n\t\t"\
+        +entity2+" "+entity2.lower()+" = new "+entity2+"();" \
+        +"\n\t\tBeanUtils.copyProperties("+entity1.lower()+", "+entity2.lower()+");" \
+        "\n\t\treturn "+entity2.lower()+";\n\t}\n"
+    str2="\tpublic "+entity1+" from"+entity2+"("+entity2+" "+entity2.lower()+"){\n \t\t"\
+        +entity1+" "+entity1.lower()+" = new "+entity1+"();" \
+        +"\n\t\tBeanUtils.copyProperties("+entity2.lower()+", "+entity1.lower()+");" \
+        "\n\t\treturn "+entity1.lower()+";\n\t}\n"
+    with open(mypath+sepa+"mappers"+sepa+"MapperImpl.java","r+") as f:
+        flag=False
+        text = f.readlines()
+        f.seek(0,0)
+        for i in range(len(text)):
+            if(i==1):
+                f.write("import com.enset."+pname+".entities."+entity1+";\n")
+                f.write("import com.enset."+pname+".dtos."+entity2+";\n")
+            if(flag):
+                f.write(str)
+                f.write(str2)
+                flag=False
+            if("class" in text[i]):
+                flag=True
+            f.write(text[i])
+        f.close()
+
+def generateEnum(arg):
+    str="public enum "+arg+" {\n";
+    str2=""
+    while(1):
+        print("Enter Value1 >",end="")
+        varName=input()
+        if varName=="":
+            break
+        str2=str2+varName+" ,"
+    str2=str2[0:len(str)-1]
+    str=str+str2+"\n}"
+    sepa=separator()
+    with open(mypath+sepa+"enums"+sepa+arg+".java","w") as f:
+        f.write(str)
+        f.close()
 
 def main():
     global arg
