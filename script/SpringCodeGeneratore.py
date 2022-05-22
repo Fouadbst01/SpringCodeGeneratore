@@ -5,6 +5,7 @@ import zipfile
 from pyparsing import Char
 from os.path import exists
 from os import mkdir, getcwd, walk, scandir,remove
+import platform
 import requests as req
 
 class1 = ["id","String", "int", "double","Long","Date"]
@@ -46,14 +47,10 @@ def choseType(stdscr):
 #curses.wrapper(choseType)
 def start(args):
     match args:
-        case 'g':
-            generateProjectStructure()
         case 'c':
             return addEntity(sys.argv[2])
         case 'r':
             return GenerateRepositorise()
-        case 'b':
-            return basePackage(sys.argv[2])
         case 'i':
             return init(sys.argv[2])
         case 'a':
@@ -73,22 +70,25 @@ def basePackage(arg):
         else:
             flag=False
         cont=cont+1
+    if(platform.system()=='Windows'):
+        mpath.replace("/","\\")
     return mpath
 
 def addEntity(name):
     global mypath
     mypath = basePackage("")
-    list= mypath.split("/")
+    sepa=separator()
+    list= mypath.split(sepa)
     pname=list[len(list)-1]
     if(exists(name+".java")):
         print("Entity alerady existe !!")
         return
-    if(not exists(mypath+"/entities")):
-        mkdir(mypath+"/entities")
+    if(not exists(mypath+sepa+"entities")):
+        mkdir(mypath+sepa+"entities")
     print(mypath)
-    f = open(mypath+"/entities/"+name+".java", "w")
+    f = open(mypath+sepa+"entities"+sepa+name+".java", "w")
 
-    fdto = open(mypath+"/dtos/"+name+"DTO"+".java","w")
+    fdto = open(mypath+sepa+"dtos"+sepa+name+"DTO"+".java","w")
 
     fdto.write(
         "package com.enset."+pname+".dtos;\n\n"
@@ -146,33 +146,35 @@ def addEntity(name):
     fdto.close()
 
 def generateProjectStructure():
+    sepa=separator()
     try:
-        if(not exists(mypath+"/entities")):
-            print(mypath+"/entities")
-            mkdir(mypath+"/entities")
-        if(not exists(mypath+"/main/dtos")):
-            mkdir(mypath+"/dtos")
-        if(not exists(mypath+"/enums")):
-            mkdir(mypath+"/enums")
-        if(not exists(mypath+"/repositories")):
-            mkdir(mypath+"/repositories")
-        if(not exists(mypath+"/services")):
-            mkdir(mypath+"/services")
-        if(not exists(mypath+"/web")):
-            mkdir(mypath+"/web")
-        if(not exists(mypath+"/dtos")):
-            mkdir(mypath+"/dtos")
+        if(not exists(mypath+sepa+"entities")):
+            print(mypath+sepa+"entities")
+            mkdir(mypath+sepa+"entities")
+        if(not exists(mypath+sepa+"dtos")):
+            mkdir(mypath+sepa+"dtos")
+        if(not exists(mypath+sepa+"enums")):
+            mkdir(mypath+sepa+"enums")
+        if(not exists(mypath+sepa+"repositories")):
+            mkdir(mypath+sepa+"repositories")
+        if(not exists(mypath+sepa+"services")):
+            mkdir(mypath+sepa+"services")
+        if(not exists(mypath+sepa+"web")):
+            mkdir(mypath+sepa+"web")
+        if(not exists(mypath+sepa+"dtos")):
+            mkdir(mypath+sepa+"dtos")
     except OSError as err:
         print("alerady generated !!")
 
 def GenerateRepositorise():
     mypath = basePackage("")
-    list= mypath.split("/")
+    sepa=separator()
+    list= mypath.split(sepa)
     pname=list[len(list)-1]
-    for subdir, dirs, files in walk(mypath+"/entities"):
+    for subdir, dirs, files in walk(mypath+sepa+"entities"):
         for file in files:
             entityName=file.partition('.')[0]
-            f = open(mypath+'/entities/'+entityName+".java", 'r')
+            f = open(mypath+sepa+'entities'+sepa+entityName+".java", 'r')
             idType=""
             flag=False
             while True:
@@ -181,8 +183,8 @@ def GenerateRepositorise():
                     flag=True
                     idType=f.readline().split(" ")[1]
                     break
-            if(flag and not exists(mypath+"/repositories/"+entityName+"Repository.java")):
-                f = open(mypath+"/repositories/"+entityName+"Repository.java", "w")
+            if(flag and not exists(mypath+sepa+"repositories"+sepa+entityName+"Repository.java")):
+                f = open(mypath+sepa+"repositories"+sepa+entityName+"Repository.java", "w")
                 f.write("package com.enset."+pname+".repositories;\n\n"+
                         "import com.enset."+pname+".entities."+entityName+";\n"
                         +"import org.springframework.data.jpa.repository.JpaRepository;\n"
@@ -196,6 +198,7 @@ def GenerateRepositorise():
             f.close()
 
 def init(arg):
+    sepa=separator()
     global mypath
     url = "https://start.spring.io/starter.zip?type=maven-project&language=java&bootVersion=2.7.0&baseDir="+arg+"&groupId=com.enset&artifactId="+arg+"&name="+arg+"&description=Demo%20project%20for%20Spring%20Boot&packageName=com.enset."+arg+"&packaging=jar&javaVersion=1.8&dependencies=web,lombok,data-jpa,mysql"
    
@@ -207,7 +210,7 @@ def init(arg):
     mypath = basePackage(arg)
     print("enter DB name > ")
     dbname=input()
-    f= open("./"+arg+"/src/main/resources/application.properties","w")
+    f= open("."+sepa+arg+sepa+"src"+sepa+"main"+sepa+"resources"+sepa+"application.properties","w")
     f.write("spring.datasource.url=jdbc:mysql://localhost:3306/"+dbname+"?createDatabaseIfNotExist=true\n")
     f.write("spring.datasource.username=root\n")
     f.write("spring.datasource.password=\n")
@@ -219,8 +222,10 @@ def init(arg):
     generateProjectStructure()
 
 def addAssociation():
+    sepa=separator()
     mypath = basePackage("")
-    mypath=mypath+"/entities"
+
+    mypath=mypath+sepa+"entities"
     global classes
     listE=list() 
     for subdir, dirs, files in walk(mypath):
@@ -273,15 +278,16 @@ def AddDependency(chosen,entity1,entity2):
 
 def write(str,entity,dto):
     mypath = basePackage("")
-    list= mypath.split("/")
+    sepa=separator()
+    list= mypath.split(sepa)
     pname=list[len(list)-1]
-    write_in_end(mypath+"/entities",entity,str)
-    write_in_end(mypath+"/dtos",entity+"DTO",dto,True)
+    write_in_end(mypath+sepa+"entities",entity,str)
+    write_in_end(mypath+sepa+"dtos",entity+"DTO",dto,True)
 
 
 def write_in_end(path,entity,str,flag=False):
-    
-    with open(path+"/"+entity+".java", 'r+') as file:
+    sepa=separator()
+    with open(path+sepa+entity+".java", 'r+') as file:
         lines = file.readlines()
         file.seek(0,0)
         for i in range(len(lines)):
@@ -291,6 +297,11 @@ def write_in_end(path,entity,str,flag=False):
                 file.write(str)
             file.write(lines[i])
         file.close()
+def separator():
+    if(platform.system()=='Windows'):
+        return '\\'
+    else:
+        return '/'
 
 def main():
     global arg
