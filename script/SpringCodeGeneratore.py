@@ -213,7 +213,7 @@ def init(arg):
     f.write("spring.datasource.password=\n")
     #f.write("spring.jpa.show-sql=true")
     f.write("spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect\n")
-    f.write("spring.jpa.hibernate.ddl-auto=update\n")
+    f.write("spring.jpa.hibernate.ddl-auto=create\n")
     f.close()
     generateProjectStructure()
 
