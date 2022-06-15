@@ -45,7 +45,6 @@ def choseType(stdscr):
     stdscr.addstr(classes[option])
     return classes[option];
 
-#curses.wrapper(choseType)
 def start(args):
     match args:
         case 'c':
