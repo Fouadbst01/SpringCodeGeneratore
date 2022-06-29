@@ -1,24 +1,20 @@
 from setuptools import setup
 
-setup(name='motion_control',
-      version='0.1',
-      description="Python library to generate Spring Project and code",
-      long_description='sg to call the script',
-      classifiers=[],
-      keywords='python Spring',
+setup(
+      name='Spring_Generator',
+      version='1.0.0',
+      description="Spring Boot CLI",
+      long_description='generate Spring Project and code',
       author='EL BSSITA Fouad',
       author_email='Fouadelbssita@gmail.com',
-      #url='ANY URL YOU THINK IS RELEVANT',
       #license='MIT', # or any license you think is relevant
       packages=['script'],
-      zip_safe=False,
+      #zip_safe=False,
       install_requires=[
-          #'pycurl',
-          'requests',
+          'click'
       ],
       entry_points="""
-      # -*- Entry points: -*-
       [console_scripts]
-      sg = script.SpringCodeGeneratore:main
+      sg = script.SGv2:main
       """,
 )

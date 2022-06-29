@@ -9,6 +9,7 @@ from os import mkdir, getcwd, walk, scandir,remove
 import platform
 import requests as req
 
+
 class1 = ["id","String", "int", "double","Long","Date"]
 class2 = ["String","Long"]
 class3 = ["ManyToMany","ManyToOne","OneToOne","OneToMany"]
