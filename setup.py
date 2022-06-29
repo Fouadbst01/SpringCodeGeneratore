@@ -15,6 +15,6 @@ setup(
       ],
       entry_points="""
       [console_scripts]
-      sg = script.SGv2:main
+      sg = script.SpringCodeGeneratore:main
       """,
 )

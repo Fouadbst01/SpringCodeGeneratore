@@ -6,5 +6,4 @@ Spring_Generator.egg-info/dependency_links.txt
 Spring_Generator.egg-info/entry_points.txt
 Spring_Generator.egg-info/requires.txt
 Spring_Generator.egg-info/top_level.txt
-script/SGv2.py
 script/SpringCodeGeneratore.py

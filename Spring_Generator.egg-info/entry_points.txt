@@ -1,2 +1,2 @@
 [console_scripts]
-sg = script.SGv2.py:main
+sg = script.SpringCodeGeneratore:main
