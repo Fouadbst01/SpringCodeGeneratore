@@ -128,18 +128,18 @@ def addEntity(name):
                 f.write("@GeneratedValue(strategy = GenerationType.IDENTITY)\n")
             else:
                 f.write("\n")
-            f.write("\tpublic "+idType+" "+filedname+";\n")
-            fdto.write("\tpublic "+idType+" "+filedname+";\n")     
+            f.write("\tprivate "+idType+" "+filedname+";\n")
+            fdto.write("\tprivate "+idType+" "+filedname+";\n")     
             classes=class1
             continue
         if(filedtype=='Date'):
             f.write("\t@Temporal(TemporalType.DATE)\n")
-            f.write("\tpublic Date "+filedname+";\n")
-            fdto.write("\tpublic Date "+filedname+";\n") 
+            f.write("\tprivate Date "+filedname+";\n")
+            fdto.write("private Date "+filedname+";\n") 
             continue
         print(filedtype)
-        f.write("\tpublic "+filedtype+" "+filedname+";\n")
-        fdto.write("\tpublic "+filedtype+" "+filedname+";\n")
+        f.write("\tprivate "+filedtype+" "+filedname+";\n")
+        fdto.write("\tprivate "+filedtype+" "+filedname+";\n")
     f.write("}")
     fdto.write("}")
     f.close()
