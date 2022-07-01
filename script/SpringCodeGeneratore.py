@@ -1,20 +1,30 @@
 import click
+from os import mkdir,getcwd,path
 
 @click.group()
 def sg():
     pass
 
 @click.command()
-def init():
-    click.echo('Initialization')
+@click.argument("name")
+def create(name):
+    click.Choice(["hzhzhzh","ooozozoz","izhezioah"])
+    mypath=path.join(getcwd(),name)
+    mkdir(mypath)
+    listdir = ["entities","dtos","enums","repositories","services","web","mappers"]
+    for dir in listdir:
+        #print(path.join(mypath,dir))
+        mkdir(path.join(mypath,dir))
+
 
 @click.command()
 def doSo():
     click.echo('do somrthings')
 
-sg.add_command(init)
+#add commande to group
+#sg create
+sg.add_command(create)
 sg.add_command(doSo)
 
-if __name__ == "__main__":
-    print("yesyyyyyy")
+def main():
     sg()
