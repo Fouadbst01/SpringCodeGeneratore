@@ -211,7 +211,7 @@ def GenerateRepositorise():
 def init(arg):
     sepa=separator()
     global mypath
-    url = "https://start.spring.io/starter.zip?type=maven-project&language=java&bootVersion=2.7.0&baseDir="+arg+"&groupId=com.enset&artifactId="+arg+"&name="+arg+"&description=Demo%20project%20for%20Spring%20Boot&packageName=com.enset."+arg+"&packaging=jar&javaVersion=1.8&dependencies=web,lombok,data-jpa,mysql"
+    
    
     file = req.get(url, allow_redirects=True)
     open(arg+".zip", 'wb').write(file.content)

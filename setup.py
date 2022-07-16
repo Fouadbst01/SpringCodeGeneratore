@@ -11,7 +11,8 @@ setup(
       packages=['script'],
       #zip_safe=False,
       install_requires=[
-          'click'
+          'click',
+          'questionary'
       ],
       entry_points="""
       [console_scripts]
