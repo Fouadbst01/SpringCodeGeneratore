@@ -21,11 +21,17 @@ class bcolors:
 
 @click.group(cls=ClickAliasedGroup)
 def sg():
+    """
+    [+] AUTOR:        Fouad El bssita\n
+    [+] GITHUB:       https://github.com/fouadbst01\n
+    Spring Generator CLI
+    """
     pass
 
 @sg.command(aliases=['c'])
 @click.argument("project_name")
 def create(project_name):
+    """create new Spring Boot project"""
     if(path.isdir(path.join(getcwd(),project_name))):
         raise SystemExit(f"{bcolors.FAIL}Eroor: Project name already exists")
     package_name = questionary.text(
@@ -123,6 +129,7 @@ def create(project_name):
 @sg.command(aliases=['e'])
 @click.argument("entity_name")
 def entity(entity_name):
+    """generate entity classe"""
     my_path = getBasePath()
     entities_path = path.join(my_path,"entities")
     dtos_path = path.join(my_path,"dtos")
@@ -210,6 +217,7 @@ def entity(entity_name):
 
 @sg.command(aliases=['r'])
 def repositories():
+    """generate repositories"""
     my_path = getBasePath()
     repositories_path = path.join(my_path,"repositories")
     entities_path = path.join(my_path,"entities")
@@ -240,6 +248,7 @@ def repositories():
                         +"public interface "+entity_name+"Repository extends JpaRepository<"
                         +entity_name
                         +","+idType+"> {\n}")
+                print(f"{bcolors.OKGREEN}generate "+entity_name+"Repository.")
             else:
                 print(f"{bcolors.FAIL}Faild to generate "+entity_name+"Repository : id dosent existe")
             f.close()
@@ -248,6 +257,7 @@ def repositories():
 @sg.command()
 @click.argument("enum_name")
 def enum(enum_name):
+    """generate enumeration class"""
     enum_name = enum_name.capitalize()
     str="public enum "+enum_name.capitalize()+" {\n";
     values = []
@@ -272,6 +282,7 @@ def enum(enum_name):
 
 @sg.command(aliases=['a'])
 def association():
+    """generate association between tow classes"""
     my_path = getBasePath()
 
     entities_path = path.join(my_path,"entities")
@@ -369,6 +380,7 @@ def getBasePath():
         print (f"{bcolors.FAIL}OOps: access to project folder to execute this commande 'cd MyProgect'")
         SystemExit(-1)
 
+
 def getBase():
 
     dir_name = path.basename(getcwd())
@@ -390,15 +402,6 @@ def getBase():
         SystemExit(-1)
 
 
-
-
-#add commande to group
-#sg create
-sg.add_command(create)
-
-ALIASES={
-    "cr" : create,
-}
 
 def main():
     sg()
