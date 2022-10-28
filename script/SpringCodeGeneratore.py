@@ -73,14 +73,10 @@ def create(project_name):
     
 
     url = "https://start.spring.io/starter.zip?type=maven-project&language=java&bootVersion=2.7.5&baseDir="+project_name+"&groupId="+package_name+"&artifactId="+artifact_id+"&name="+project_name+"&packageName="+package_name+"."+project_name+"&packaging="+packaging+"&javaVersion=1.8&dependencies="+package
-
-    print(url)
     
     file = None
     try :
         file = req.get(url, allow_redirects=True)
-        print("file :")
-        print(file)
     except req.exceptions.HTTPError as errh:
         print (f"{bcolors.FAIL}Http Error:",errh)
         SystemExit(-1)
