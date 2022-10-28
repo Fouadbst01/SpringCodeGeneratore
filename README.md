@@ -1,45 +1,73 @@
-Demonstration :
+# Demonstration :
 
-https://user-images.githubusercontent.com/70094556/169673986-533670cc-6214-4cfe-9d74-abaa75e1716a.mp4
+https://user-images.githubusercontent.com/70094556/198661275-ffb9c4e5-73c4-41b9-bd17-a1ee464a91aa.mp4
 
-Reaquirements :
->Python 3.10
+# Spring Boot Generator CLI
 
-For widows users :
-```console 
-pip install windows-curses
+```
+    [+] AUTOR:        Fouad El bssita
+    [+] GITHUB:       https://github.com/Fouadbst01
 ```
 
-Run Project :
+# Reaquirements :
+
+> Python 3.10
+
+# Getting the code :
+
+```
+git clone https://github.com/Fouadbst01/SpringCodeGeneratore.git
+cd SpringCodeGeneratore/
+sudo python3 setup.py install
+```
+
+# Generate Spring Boot Project :
+
 ```console
-sudo python setup.py install
-```
-Generate Spring Project :
-```console 
-sg i name_of_project
+sg create name_of_project
 cd name_of_project
 ```
 
-Generate New entity :
+# Generate New entity :
+
 ```console
-sg c entity_name
+sg entity entity_name
 ```
 
-Generate repository :
+or
+
+```console
+sg e entity_name
+```
+
+# Generate repository :
+
+```console
+sg repositories
+```
+
+or
+
 ```console
 sg r
 ```
 
-Generate association :
+# Generate association :
+
+```console
+sg association
+```
+
+or
+
 ```console
 sg a
 ```
 
-Generate Enum :
+# Generate Enumeration :
+
 ```console
-sg e
+sg enum
 ```
 
-DTOs are generated automaticlly
-> for lists you need to add code manually
-
+# DTOs are generated automaticlly
