@@ -1,0 +1,8 @@
+Metadata-Version: 2.1
+Name: Spring-Generator
+Version: 1.0.0
+Summary: Spring Boot CLI
+Author: EL BSSITA Fouad
+Author-email: Fouadelbssita@gmail.com
+
+generate Spring Project and code

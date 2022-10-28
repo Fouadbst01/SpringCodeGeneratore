@@ -1,262 +1,311 @@
-import curses
-from struct import pack
-import sys
+from ast import alias
+from copyreg import constructor
+import click
+from click_aliases import ClickAliasedGroup
+import questionary
+from os import mkdir,getcwd,path,remove,scandir,walk
+import requests as req
 import zipfile
 
-from pyparsing import Char
-from os.path import exists
-from os import mkdir, getcwd, walk, scandir,remove
-import platform
-import requests as req
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
-class1 = ["id","String", "int", "double","Long","Date"]
-class2 = ["String","Long"]
-class3 = ["ManyToMany","ManyToOne","OneToOne","OneToMany"]
 
-classes =class1
+@click.group(cls=ClickAliasedGroup)
+def sg():
+    pass
 
-mypath=""
+@sg.command(aliases=['c'])
+@click.argument("project_name")
+def create(project_name):
+    if(path.isdir(path.join(getcwd(),project_name))):
+        raise SystemExit(f"{bcolors.FAIL}Eroor: Project name already exists")
+    package_name = questionary.text(
+        'package name ? (com.exemple)',default='com.exemple'
+    ).ask()
 
-def choseType(stdscr):
-    attributes = {}
-    curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
-    attributes['normal'] = curses.color_pair(1)
+    artifact_id = questionary.text(
+        f'artifact_id ? ({project_name})',default=project_name
+    ).ask()
 
-    curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_WHITE)
-    attributes['highlighted'] = curses.color_pair(2)
+    packaging= questionary.select(
+        'Select packaging ? (JAR)',
+        choices=[
+            "jar",
+            "war",
+        ],
+        default="jar").ask()
 
-    c = 0 
-    option = 0 
-    while c != 10:
-        stdscr.erase()
-        for i in range(len(classes)):
-            if i == option:
-                attr = attributes['highlighted']
-            else:
-                attr = attributes['normal']
-            stdscr.addstr("> ")
-            stdscr.addstr(classes[i] + '\n', attr)
-        c = stdscr.getch()
-        if c == curses.KEY_UP and option > 0:
-            option -= 1
-        elif c == curses.KEY_DOWN and option < len(classes) - 1:
-            option += 1
-
-    stdscr.addstr(classes[option])
-    return classes[option];
-
-def start(args):
-    match args:
-        case 'c':
-            return addEntity(sys.argv[2])
-        case 'r':
-            return GenerateRepositorise()
-        case 'i':
-            return init(sys.argv[2])
-        case 'a':
-            return addAssociation()
-        case 'e':
-            return generateEnum(sys.argv[2])
-
-def basePackage(arg):
-    sep=separator()
-    cont=1
-    if(arg==""):
-        mpath = getcwd()+sep+"src"+sep+"main"+sep+"java"+sep
-    else:
-        mpath = getcwd()+sep+arg+sep+"src"+sep+"main"+sep+"java"+sep
-    flag=True
-    while flag:
-        list = [f.path for f in scandir(mpath) if f.is_dir()]
-        if(cont<4 and len(list)!=0):
-            mpath=list[0]
-        else:
-            flag=False
-        cont=cont+1
-    return mpath
-
-def addEntity(name):
-    global mypath
-    mypath = basePackage("")
-    sepa=separator()
-    list= mypath.split(sepa)
-    pname=list[len(list)-1]
-    if(exists(name+".java")):
-        print("Entity alerady existe !!")
-        return
-    if(not exists(mypath+sepa+"entities")):
-        mkdir(mypath+sepa+"entities")
-    print(mypath)
-    f = open(mypath+sepa+"entities"+sepa+name+".java", "w")
-
-    fdto = open(mypath+sepa+"dtos"+sepa+name+"DTO"+".java","w")
+    dbpack= questionary.select(
+        'Select pckages',
+        choices=[
+            "mysql",
+            "h2",
+            #"MongoDB", 
+        ]).ask()
     
-    fdto.write(
-        "package com.enset."+pname+".dtos;\n\n"
+    db_name = questionary.text(
+        'database name ?'
+    ).ask()
+
+    
+    depe= questionary.checkbox(
+        'select dependencies',
+        choices=[
+            "lombok",
+            "web",
+            "data-jpa"
+        ],
+     ).ask()
+
+    depe = ",".join(depe)
+
+    package = depe+","+dbpack
+
+    
+
+    url = "https://start.spring.io/starter.zip?type=maven-project&language=java&bootVersion=2.7.5&baseDir="+project_name+"&groupId="+package_name+"&artifactId="+artifact_id+"&name="+project_name+"&packageName="+package_name+"."+project_name+"&packaging="+packaging+"&javaVersion=1.8&dependencies="+package
+
+    print(url)
+    
+    file = None
+    try :
+        file = req.get(url, allow_redirects=True)
+        print("file :")
+        print(file)
+    except req.exceptions.HTTPError as errh:
+        print (f"{bcolors.FAIL}Http Error:",errh)
+        SystemExit(-1)
+    except req.exceptions.ConnectionError as errc:
+        print (f"{bcolors.FAIL}Error Connecting:",errc)
+        SystemExit(-1)
+    except req.exceptions.Timeout as errt:
+        print (f"{bcolors.FAIL}Timeout Error:",errt)
+        SystemExit(-1)
+    except req.exceptions.RequestException as err:
+        print (f"{bcolors.FAIL}OOps: Something Else",err)
+        SystemExit(-1)
+
+    if(file !=None):
+        pack_dir_name = package_name.split('.')
+        project_file_name = project_name+".zip"
+        open(project_file_name, 'wb').write(file.content)
+        with zipfile.ZipFile(project_file_name, 'r') as zip_ref:
+            zip_ref.extractall()
+        
+        remove(path.join(getcwd(),project_file_name))
+       
+        
+        mypath=path.join(getcwd(),project_name,"src","main","java",*pack_dir_name,project_name)
+        
+        listdir = ["entities","dtos","enums","repositories","services","web","mappers"]
+        for dir in listdir:
+            mkdir(path.join(mypath,dir))
+    f= open( path.join(getcwd(),project_name,"src","main","resources","application.properties"),"w")
+    if(dbpack == "mysql"):
+        f.write("spring.datasource.url=jdbc:mysql://localhost:3306/"+db_name+"?createDatabaseIfNotExist=true\n")
+        f.write("spring.datasource.username=root\n")
+        f.write("spring.datasource.password=\n")
+        #f.write("spring.jpa.show-sql=true")
+        f.write("spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect\n")
+        f.write("spring.jpa.hibernate.ddl-auto=create\n")
+        f.write("server.port=8083")
+    if(dbpack == "h2"):
+        f.write("spring.datasource.url=jdbc:h2:mem:"+db_name)
+        f.write("\nspring.h2.console.enabled=true")
+    f.close()
+        
+
+@sg.command(aliases=['e'])
+@click.argument("entity_name")
+def entity(entity_name):
+    my_path = getBasePath()
+    entities_path = path.join(my_path,"entities")
+    dtos_path = path.join(my_path,"dtos")
+
+    entity_name = entity_name.capitalize()
+
+    entity_file_path = path.join(entities_path,entity_name+".java")
+    dto_file_path = path.join(dtos_path,entity_name+"DTO"+".java")
+
+    if(path.exists(entity_file_path)):
+        print (f"{bcolors.FAIL}Entity alerady existe !!")
+        SystemExit(-1)
+
+    entity_file = open(entity_file_path, "w")
+
+    dto_file = open(dto_file_path,"w")
+
+    package = getBase()
+
+    dto_file.write(
+        "package "+ package+".dtos;\n\n"
         +"import lombok.Data;\n"
         +"import java.util.Date;\n"
         +"\n\n@Data\n"
-        +"public class "+name+"DTO {\n"
+        +"public class "+entity_name+"DTO"+" {\n"
     )
-    f.write("package com.enset."+pname+".entities;\n\n"+"import lombok.AllArgsConstructor;\n"
-+"import lombok.Data;\n"
-+"import lombok.NoArgsConstructor;\n"
-+"import javax.persistence.Entity;\n"
-+"import javax.persistence.GeneratedValue;\n"
-+"import java.util.Date;\n"
-+"import javax.persistence.GenerationType;\n"
-+"import javax.persistence.Id;\n"
-+"import javax.persistence.*;\n import java.util.List;"
-+"\n\n@Data\n"+
-"@AllArgsConstructor\n@NoArgsConstructor\n"+
-"@Entity\n"+
-"public class "+name+"{\n")
+
+    entity_file.write("package "+package+".entities;\n\n"+"import lombok.AllArgsConstructor;\n"
+        +"import lombok.Data;\n"
+        +"import lombok.NoArgsConstructor;\n"
+        +"import javax.persistence.Entity;\n"
+        +"import javax.persistence.GeneratedValue;\n"
+        +"import java.util.Date;\n"
+        +"import javax.persistence.GenerationType;\n"
+        +"import javax.persistence.Id;\n"
+        +"import javax.persistence.*;\nimport java.util.List;"
+        +"\n\n@Data\n"+
+        "@AllArgsConstructor\n@NoArgsConstructor\n"+
+        "@Entity\n"+
+        "public class "+entity_name+"{\n")
+    
     while(1):
-        print("filed name > ",end="")
-        filedname= input()
-        if filedname=="":
+        filed_name = questionary.text(
+        'filed name : '
+        ).ask()
+        
+        if filed_name=="":
             break
-        print("fild type > ",end="")
-        filedtype=curses.wrapper(choseType)
-        if(filedtype=='id'):
-            global classes
-            classes=class2
-            print("id type :")
-            idType= curses.wrapper(choseType)
-            f.write("\t@Id")
-            if(idType=="Long"):
-                f.write("@GeneratedValue(strategy = GenerationType.IDENTITY)\n")
+        filed_type = questionary.select(
+        'fild type ?',
+        choices=[
+            "id","String", "int","short","float","double","long","Date" 
+        ]).ask()
+    
+        if(filed_type =='id'):
+            id_type = questionary.select(
+            'id type ?',
+
+            choices=[
+                "long","String"
+            ]).ask()
+
+            entity_file.write("\t@Id")
+            if(id_type=="long"):
+                entity_file.write("@GeneratedValue(strategy = GenerationType.IDENTITY)\n")
             else:
-                f.write("\n")
-            f.write("\tpublic "+idType+" "+filedname+";\n")
-            fdto.write("\tpublic "+idType+" "+filedname+";\n")     
-            classes=class1
+                entity_file.write("\n")
+            entity_file.write("\tprivate "+id_type+" "+filed_name+";\n")
+            dto_file.write("\tprivate "+id_type+" "+filed_name+";\n")     
             continue
-        if(filedtype=='Date'):
-            f.write("\t@Temporal(TemporalType.DATE)\n")
-            f.write("\tpublic Date "+filedname+";\n")
-            fdto.write("\tpublic Date "+filedname+";\n") 
+
+        if(filed_type=='Date'):
+            entity_file.write("\t@Temporal(TemporalType.DATE)\n")
+            entity_file.write("\tprivate Date "+filed_name+";\n")
+            dto_file.write("private Date "+filed_name+";\n") 
             continue
-        print(filedtype)
-        f.write("\tpublic "+filedtype+" "+filedname+";\n")
-        fdto.write("\tpublic "+filedtype+" "+filedname+";\n")
-    f.write("}")
-    fdto.write("}")
-    f.close()
-    fdto.close()
-    addMapper(name,name+"DTO")
 
-def generateProjectStructure():
-    sepa=separator()
-    try:
-        if(not exists(mypath+sepa+"entities")):
-            print(mypath+sepa+"entities")
-            mkdir(mypath+sepa+"entities")
-        if(not exists(mypath+sepa+"dtos")):
-            mkdir(mypath+sepa+"dtos")
-        if(not exists(mypath+sepa+"enums")):
-            mkdir(mypath+sepa+"enums")
-        if(not exists(mypath+sepa+"repositories")):
-            mkdir(mypath+sepa+"repositories")
-        if(not exists(mypath+sepa+"services")):
-            mkdir(mypath+sepa+"services")
-        if(not exists(mypath+sepa+"web")):
-            mkdir(mypath+sepa+"web")
-        if(not exists(mypath+sepa+"dtos")):
-            mkdir(mypath+sepa+"dtos")
-        if(not exists(mypath+sepa+"mappers")):
-            mkdir(mypath+sepa+"mappers")
-        with open(mypath+sepa+"mappers"+sepa+"MapperImpl.java","w") as f:
-            list= mypath.split(sepa)
-            pname=list[len(list)-1]
-            f.write("package com.enset."+pname+".mappers;\n\n"
-            +"import org.springframework.beans.BeanUtils;\nimport org.springframework.stereotype.Service;\n"
-                    +"@Service\npublic class MapperImpl{\n}")
-            f.close()
-    except OSError as err:
-        print("alerady generated !!")
+        entity_file.write("\tprivate "+filed_type+" "+filed_name+";\n")
+        dto_file.write("\tprivate "+filed_type+" "+filed_name+";\n")
 
-def GenerateRepositorise():
-    mypath = basePackage("")
-    sepa=separator()
-    list= mypath.split(sepa)
-    pname=list[len(list)-1]
-    for subdir, dirs, files in walk(mypath+sepa+"entities"):
+    entity_file.write("}")
+    dto_file.write("}")
+    entity_file.close()
+    dto_file.close()
+
+@sg.command(aliases=['r'])
+def repositories():
+    my_path = getBasePath()
+    repositories_path = path.join(my_path,"repositories")
+    entities_path = path.join(my_path,"entities")
+
+    package = getBase()
+
+    for subdir, dirs, files in walk(entities_path):
         for file in files:
-            entityName=file.partition('.')[0]
-            f = open(mypath+sepa+'entities'+sepa+entityName+".java", 'r')
+            entity_name=file.partition('.')[0]
+            f = open(path.join(entities_path,file), 'r')
             idType=""
             flag=False
             while True:
                 str=f.readline()
+                if not str:
+                    break
                 if('@Id' in str):
                     flag=True
                     idType=f.readline().split(" ")[1]
                     break
-            if(flag and not exists(mypath+sepa+"repositories"+sepa+entityName+"Repository.java")):
-                f = open(mypath+sepa+"repositories"+sepa+entityName+"Repository.java", "w")
-                f.write("package com.enset."+pname+".repositories;\n\n"+
-                        "import com.enset."+pname+".entities."+entityName+";\n"
+            if(flag and not path.exists(path.join(repositories_path,entity_name+"Repository.java"))):
+                f = open(path.join(repositories_path,entity_name+"Repository.java"), "w")
+                f.write("package "+package+".repositories;\n\n"+
+                        "import "+package+".entities."+entity_name+";\n"
                         +"import org.springframework.data.jpa.repository.JpaRepository;\n"
                         +"import org.springframework.stereotype.Repository;\n\n"
                         +"@Repository\n"
-                        +"public interface "+entityName+"Repository extends JpaRepository<"
-                        +entityName
+                        +"public interface "+entity_name+"Repository extends JpaRepository<"
+                        +entity_name
                         +","+idType+"> {\n}")
             else:
-                print("id dosent existe")
+                print(f"{bcolors.FAIL}Faild to generate "+entity_name+"Repository : id dosent existe")
             f.close()
 
-def init(arg):
-    sepa=separator()
-    global mypath
-    url = "https://start.spring.io/starter.zip?type=maven-project&language=java&bootVersion=2.7.0&baseDir="+arg+"&groupId=com.enset&artifactId="+arg+"&name="+arg+"&description=Demo%20project%20for%20Spring%20Boot&packageName=com.enset."+arg+"&packaging=jar&javaVersion=1.8&dependencies=web,lombok,data-jpa,mysql"
-   
-    file = req.get(url, allow_redirects=True)
-    open(arg+".zip", 'wb').write(file.content)
-    with zipfile.ZipFile(arg+".zip", 'r') as zip_ref:
-        zip_ref.extractall()
-    remove(arg+".zip")
-    mypath = basePackage(arg)
-    print("enter DB name > ")
-    dbname=input()
-    f= open("."+sepa+arg+sepa+"src"+sepa+"main"+sepa+"resources"+sepa+"application.properties","w")
-    f.write("spring.datasource.url=jdbc:mysql://localhost:3306/"+dbname+"?createDatabaseIfNotExist=true\n")
-    f.write("spring.datasource.username=root\n")
-    f.write("spring.datasource.password=\n")
-    #f.write("spring.jpa.show-sql=true")
-    f.write("spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect\n")
-    f.write("spring.jpa.hibernate.ddl-auto=create\n")
-    f.write("server.port=8083")
-    f.close()
-    generateProjectStructure()
 
-def addAssociation():
-    sepa=separator()
-    mypath = basePackage("")
+@sg.command()
+@click.argument("enum_name")
+def enum(enum_name):
+    enum_name = enum_name.capitalize()
+    str="public enum "+enum_name.capitalize()+" {\n";
+    values = []
+    while(1):
+        value = questionary.text(
+        'Enter Value : '
+        ).ask()
 
-    mypath=mypath+sepa+"entities"
-    global classes
-    listE=list() 
-    for subdir, dirs, files in walk(mypath):
+        if value==None or value=="":
+            break
+
+        values.append(value.upper())
+
+    str=str+",".join(values)+"\n}"
+
+    my_path = getBasePath()
+    repositories_path = path.join(my_path,"enums")
+
+    with open(path.join(repositories_path,enum_name+".java"),"w") as f:
+        f.write(str)
+        f.close()
+
+@sg.command(aliases=['a'])
+def association():
+    my_path = getBasePath()
+
+    entities_path = path.join(my_path,"entities")
+    list_entity=[]
+    for subdir, dirs, files in walk(entities_path):
         for file in files:
-            listE.append(file.split(".")[0])
-
-    print("chose first entity > ",end="")
-    classes=listE
-    entityOne=curses.wrapper(choseType)
-    print(entityOne)
-    classes=class3
-    chosen=curses.wrapper(choseType)
-    classes=listE
-    print("chose first entity > ",end="")
-    entityTow=curses.wrapper(choseType)
-    print(entityTow)
-    AddDependency(chosen,entityOne,entityTow)
-
+            list_entity.append(file.split(".")[0])
     
-def AddDependency(chosen,entity1,entity2):
-    match chosen:
+
+    first_entity = questionary.select(
+        'first entity :',
+        choices=
+            list_entity 
+        ).ask()
+
+    association_type = questionary.select(
+        'first entity :',
+        choices=["ManyToMany","ManyToOne","OneToOne","OneToMany"]).ask()
+
+
+    second_entity = questionary.select(
+        'second entity',
+        choices=
+            list_entity 
+        ).ask()
+    
+    AddDependency(association_type,first_entity,second_entity)
+
+def AddDependency(association_type,entity1,entity2):
+    match association_type:
         case "OneToMany": 
             dto1="\t"+"List<"+entity2+"DTO>"+" list"+entity2+"DTO;\n"
             str1='\t@OneToMany(mappedBy = "'+entity1.lower()+'",fetch = FetchType.LAZY)\n'+"\t"+"List<"+entity2+">"+" list"+entity2+";\n"
@@ -287,17 +336,16 @@ def AddDependency(chosen,entity1,entity2):
             write(str2,entity2,dto2)
 
 def write(str,entity,dto):
-    mypath = basePackage("")
-    sepa=separator()
-    list= mypath.split(sepa)
-    pname=list[len(list)-1]
-    write_in_end(mypath+sepa+"entities",entity,str)
-    write_in_end(mypath+sepa+"dtos",entity+"DTO",dto,True)
+    my_path = getBasePath()
+    entities_path = path.join(my_path,"entities")
+    dtos_path = path.join(my_path,"dtos")
+    write_in_end(path.join(entities_path,entity),str)
+    write_in_end(path.join(dtos_path,entity+"DTO"),dto,True)
 
 
-def write_in_end(path,entity,str,flag=False):
-    sepa=separator()
-    with open(path+sepa+entity+".java", 'r+') as file:
+def write_in_end(path,str,flag=False):
+    
+    with open(path+".java", 'r+') as file:
         lines = file.readlines()
         file.seek(0,0)
         for i in range(len(lines)):
@@ -307,62 +355,54 @@ def write_in_end(path,entity,str,flag=False):
                 file.write(str)
             file.write(lines[i])
         file.close()
-def separator():
-    if(platform.system()=='Windows'):
-        return '\\'
-    else:
-        return '/'
-def addMapper(entity1,entity2):
-    sepa=separator()
-    mypath=basePackage("")
-    list= mypath.split(sepa)
-    pname=list[len(list)-1]
-    str="\tpublic "+entity2+" from"+entity1+"("+entity1+" "+entity1.lower()+"){\n\t\t"\
-        +entity2+" "+entity2.lower()+" = new "+entity2+"();" \
-        +"\n\t\tBeanUtils.copyProperties("+entity1.lower()+", "+entity2.lower()+");" \
-        "\n\t\treturn "+entity2.lower()+";\n\t}\n"
-    str2="\tpublic "+entity1+" from"+entity2+"("+entity2+" "+entity2.lower()+"){\n \t\t"\
-        +entity1+" "+entity1.lower()+" = new "+entity1+"();" \
-        +"\n\t\tBeanUtils.copyProperties("+entity2.lower()+", "+entity1.lower()+");" \
-        "\n\t\treturn "+entity1.lower()+";\n\t}\n"
-    with open(mypath+sepa+"mappers"+sepa+"MapperImpl.java","r+") as f:
-        flag=False
-        text = f.readlines()
-        f.seek(0,0)
-        for i in range(len(text)):
-            if(i==1):
-                f.write("import com.enset."+pname+".entities."+entity1+";\n")
-                f.write("import com.enset."+pname+".dtos."+entity2+";\n")
-            if(flag):
-                f.write(str)
-                f.write(str2)
-                flag=False
-            if("class" in text[i]):
-                flag=True
-            f.write(text[i])
-        f.close()
 
-def generateEnum(arg):
-    str="public enum "+arg+" {\n";
-    str2=""
-    while(1):
-        print("Enter Value1 >",end="")
-        varName=input()
-        if varName=="":
-            break
-        str2=str2+varName+" ,"
-    str2=str2[0:len(str)-1]
-    str=str+str2+"\n}"
-    sepa=separator()
-    with open(mypath+sepa+"enums"+sepa+arg+".java","w") as f:
-        f.write(str)
-        f.close()
+def getBasePath():
+
+    dir_name = path.basename(getcwd())
+
+    my_path = path.join(getcwd(),"src","main","java")
+    if(path.exists(my_path)):
+        while True:
+            list = [f.path for f in scandir(my_path) if f.is_dir()]
+            tmp_dir_name = path.basename(list[0])
+            my_path = path.join(my_path,tmp_dir_name)
+            if(tmp_dir_name == dir_name):
+                break;
+        return my_path;
+    else:
+        print (f"{bcolors.FAIL}OOps: access to project folder to execute this commande 'cd MyProgect'")
+        SystemExit(-1)
+
+def getBase():
+
+    dir_name = path.basename(getcwd())
+
+    my_path = path.join(getcwd(),"src","main","java")
+
+    package_list = []
+    if(path.exists(my_path)):
+        while True:
+            list = [f.path for f in scandir(my_path) if f.is_dir()]
+            tmp_dir_name = path.basename(list[0])
+            package_list.append(tmp_dir_name)
+            my_path = path.join(my_path,tmp_dir_name)
+            if(tmp_dir_name == dir_name):
+                break;
+        return ".".join(package_list);
+    else:
+        print (f"{bcolors.FAIL}OOps: access to project folder to execute this commande 'cd MyProgect'")
+        SystemExit(-1)
+
+
+
+
+#add commande to group
+#sg create
+sg.add_command(create)
+
+ALIASES={
+    "cr" : create,
+}
 
 def main():
-    global arg
-    arg = Char(sys.argv[1])
-    start(arg)
-
-if __name__ == "__main__":
-    main()
-
+    sg()

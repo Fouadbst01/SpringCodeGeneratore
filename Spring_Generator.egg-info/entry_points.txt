@@ -1,0 +1,2 @@
+[console_scripts]
+sg = script.SpringCodeGeneratore:main
