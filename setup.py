@@ -12,10 +12,12 @@ setup(
       #zip_safe=False,
       install_requires=[
           'click',
-          'questionary'
+          'questionary',
+          'click_aliases'
       ],
       entry_points="""
       [console_scripts]
       sg = script.SpringCodeGeneratore:main
       """,
 )
+# sg = script.SpringCodeGeneratore:main

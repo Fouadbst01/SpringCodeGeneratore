@@ -7,4 +7,5 @@ Spring_Generator.egg-info/entry_points.txt
 Spring_Generator.egg-info/requires.txt
 Spring_Generator.egg-info/top_level.txt
 script/SpringCodeGeneratore.py
+script/SpringCodeGeneratoreOldv.py
 script/__init__.py
